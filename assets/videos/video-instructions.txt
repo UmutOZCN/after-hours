@@ -1,0 +1,10 @@
+AFTER HOURS — VİDEO ARŞİVİ KILAVUZU
+====================================
+
+1. Bu klasöre (assets/videos/) .mp4 formatındaki videolarınızı ekleyin.
+2. Varsayılan dosya isimleri:
+   - video-01.mp4
+   - video-02.mp4
+
+3. Web tarayıcılarında en yüksek uyumluluk için H.264 video codec ve AAC ses codec içeren .mp4 dosyaları önerilir.
+4. Videolarınızı ekledikten sonra js/config.js içerisindeki VIDEO_ITEMS dizisinden başlık, açıklama ve kapak görseli yollarını düzenleyebilirsiniz.

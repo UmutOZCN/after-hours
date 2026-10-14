@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0B0F14" />
+    <meta name="description" content="Doğum Günün Kutlu Olsun — Özel Anı Arşivi" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>İyi Ki Doğdun</title>
+
+    <!-- Google Fonts: Cormorant Garamond & DM Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="./css/variables.css" />
+    <link rel="stylesheet" href="./css/base.css" />
+    <link rel="stylesheet" href="./css/components.css" />
+    <link rel="stylesheet" href="./css/animations.css" />
+    <link rel="stylesheet" href="./css/responsive.css" />
+</head>
+<body>
+    <!-- Subtle Film Grain Overlay -->
+    <div class="film-grain" aria-hidden="true"></div>
+
+    <!-- Global Confetti Canvas -->
+    <canvas id="confetti-canvas" class="confetti-canvas" aria-hidden="true"></canvas>
+
+    <!-- Fixed Top Header -->
+    <header class="site-header" role="banner">
+        <div class="site-header__inner">
+            <span class="site-header__brand">İYİ Kİ DOĞDUN <span class="site-header__divider">✦</span> ÖZEL ANI ARŞİVİ</span>
+            <div class="site-header__actions">
+                <button
+                    type="button"
+                    id="music-toggle-btn"
+                    class="music-toggle"
+                    aria-label="Arka plan müziğini aç veya kapat"
+                    aria-pressed="false"
+                    hidden
+                >
+                    <span class="music-toggle__bars" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                    </span>
+                    <span class="music-toggle__label" id="music-toggle-label">SES KAPALI</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <!-- ==========================================
+             SECTION 1: THE ENVELOPE & UNFOLDING LETTER
+             ========================================== -->
+        <section id="section-envelope" class="section-envelope" aria-label="Açılış Zarfı ve Mektup">
+            <canvas id="ambient-dust-canvas" class="ambient-dust-canvas" aria-hidden="true"></canvas>
+            <div class="ambient-vignette" aria-hidden="true"></div>
+
+            <!-- 1A: Initial Closed 3D Envelope Stage -->
+            <div class="envelope-stage" id="envelope-stage">
+                <div class="envelope-meta">
+                    <span class="editorial-tag">DOĞUM GÜNÜNE ÖZEL</span>
+                </div>
+
+                <!-- 3D Interactive Envelope Button -->
+                <button
+                    type="button"
+                    id="envelope-trigger"
+                    class="envelope-button"
+                    aria-label="Mektubu açmak için zarfa dokun"
+                    aria-expanded="false"
+                >
+                    <span class="envelope-scene">
+                        <span class="envelope-3d" id="envelope-3d">
+                            <!-- Back Shadow & Base -->
+                            <span class="envelope-shadow" aria-hidden="true"></span>
+                            <span class="envelope-back" aria-hidden="true"></span>
+
+                            <!-- Emerging Ivory Letter Card Inside Envelope -->
+                            <span class="envelope-letter" id="envelope-inner-letter" aria-hidden="true">
+                                <span class="envelope-letter__inner">
+                                    <span class="envelope-letter__header">
+                                        <span class="envelope-letter__stamp">İYİ Kİ DOĞDUN</span>
+                                        <span class="envelope-letter__line"></span>
+                                    </span>
+                                    <span class="envelope-letter__label" id="envelope-label-text">SANA ÖZEL</span>
+                                    <span class="envelope-letter__faux-lines">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </span>
+                                </span>
+                            </span>
+
+                            <!-- Side & Bottom Folds (Front Pocket) -->
+                            <span class="envelope-pocket" aria-hidden="true">
+                                <span class="envelope-fold envelope-fold--left"></span>
+                                <span class="envelope-fold envelope-fold--right"></span>
+                                <span class="envelope-fold envelope-fold--bottom"></span>
+                            </span>
+
+                            <!-- Top Rotating Flap -->
+                            <span class="envelope-flap" id="envelope-flap" aria-hidden="true">
+                                <span class="envelope-flap__front"></span>
+                                <span class="envelope-flap__back"></span>
+                            </span>
+
+                            <!-- Metallic Wax Seal -->
+                            <span class="envelope-seal" id="envelope-seal" aria-hidden="true">
+                                <span class="envelope-seal__ring">
+                                    <span class="envelope-seal__monogram">✦</span>
+                                </span>
+                            </span>
+                        </span>
+                    </span>
+                </button>
+
+                <p class="envelope-instruction" id="envelope-instruction">
+                    Mektubu açmak için zarfa dokun.
+                </p>
+            </div>
+
+            <!-- 1B: Opened Letter View (Hidden until envelope is clicked) -->
+            <div class="envelope-opened-letter" id="envelope-opened-letter" hidden>
+                <div class="container container--narrow">
+                    <div class="letter-top-controls">
+                        <button type="button" id="close-letter-btn" class="letter-reset-btn">
+                            <span>← ZARFI TEKRAR KAPAT</span>
+                        </button>
+                    </div>
+
+                    <article class="letter-paper" id="letter-paper">
+                        <div class="letter-paper__border">
+                            <header class="letter-paper__header">
+                                <span class="letter-paper__archive-code">DOĞUM GÜNÜ NOTU</span>
+                                <span class="letter-paper__recipient" id="letter-recipient-tag"></span>
+                            </header>
+
+                            <h1 id="letter-heading" class="letter-paper__title">
+                                Sana küçük bir notum var.
+                            </h1>
+
+                            <div id="letter-body" class="letter-paper__body">
+                                <!-- Populated dynamically from SITE_CONFIG.letterParagraphs -->
+                            </div>
+
+                            <footer class="letter-paper__footer">
+                                <div class="letter-paper__signature-block">
+                                    <span class="letter-paper__signature-line" aria-hidden="true"></span>
+                                    <p id="letter-signature" class="letter-paper__signature">IMZA</p>
+                                </div>
+                            </footer>
+                        </div>
+                    </article>
+
+                    <div class="letter-actions">
+                        <a href="#section-gallery" id="scroll-to-gallery-btn" class="editorial-btn">
+                            <span>ANILARA GÖZ AT</span>
+                            <svg class="editorial-btn__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                <path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             SECTION 2: 3D GLASSMORPHISM PHOTO ARCHIVE
+             ========================================== -->
+        <section id="section-gallery" class="section-gallery reveal-on-scroll" aria-labelledby="gallery-title">
+            <!-- Soft Atmospheric Glows Behind Glass Carousel -->
+            <div class="gallery-ambient-orb gallery-ambient-orb--left" aria-hidden="true"></div>
+            <div class="gallery-ambient-orb gallery-ambient-orb--center" aria-hidden="true"></div>
+            <div class="gallery-ambient-orb gallery-ambient-orb--right" aria-hidden="true"></div>
+
+            <div class="container">
+                <header class="section-header">
+                    <span class="section-header__index">FOTOĞRAF GALERİSİ</span>
+                    <div class="section-header__title-row">
+                        <div>
+                            <h2 id="gallery-title" class="section-header__title">Anılar arşivi</h2>
+                            <p id="gallery-subtitle" class="section-header__subtitle">Birlikte biriktirilen küçük anlar.</p>
+                        </div>
+                        <div class="gallery-counter" aria-live="polite">
+                            <span id="gallery-current-index" class="gallery-counter__current">01</span>
+                            <span class="gallery-counter__sep">/</span>
+                            <span id="gallery-total-count" class="gallery-counter__total">40</span>
+                        </div>
+                    </div>
+                </header>
+            </div>
+
+            <!-- Full-Width 3D Perspective Carousel Stage -->
+            <div class="gallery-3d-showcase">
+                <button
+                    type="button"
+                    id="gallery-prev-btn"
+                    class="gallery-nav-btn gallery-nav-btn--prev"
+                    aria-label="Önceki fotoğraf"
+                >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                        <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+
+                <div
+                    id="gallery-carousel-viewport"
+                    class="gallery-carousel-viewport"
+                    role="region"
+                    tabindex="0"
+                    aria-label="3D Fotoğraf Arşivi"
+                >
+                    <div id="gallery-carousel-track" class="gallery-carousel-track">
+                        <!-- 3D Glass Photo Cards dynamically generated by js/gallery.js -->
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    id="gallery-next-btn"
+                    class="gallery-nav-btn gallery-nav-btn--next"
+                    aria-label="Sonraki fotoğraf"
+                >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                        <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="container">
+                <!-- Active Photo Glassmorphic Info & Fullscreen Action Bar -->
+                <div class="gallery-caption-bar" id="gallery-caption-bar">
+                    <div class="gallery-caption-bar__text">
+                        <h3 id="gallery-photo-title" class="gallery-caption-bar__title" hidden></h3>
+                        <p id="gallery-photo-desc" class="gallery-caption-bar__desc" hidden></p>
+                    </div>
+                    <button
+                        type="button"
+                        id="gallery-fullscreen-btn"
+                        class="gallery-expand-btn"
+                        aria-label="Aktif fotoğrafı tam ekran aç"
+                    >
+                        <span>TAM EKRAN İNCELE</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Horizontal Thumbnail Catalogue -->
+                <div class="gallery-thumbnails-wrapper">
+                    <div
+                        id="gallery-thumbnails"
+                        class="gallery-thumbnails"
+                        role="region"
+                        aria-label="Fotoğraf küçük resimleri"
+                    >
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             SECTION 3: THE VIDEO ARCHIVE
+             ========================================== -->
+        <section id="section-videos" class="section-videos reveal-on-scroll" aria-labelledby="video-title">
+            <div class="container">
+                <header class="section-header">
+                    <span class="section-header__index">VİDEO ARŞİVİ</span>
+                    <div class="section-header__title-row">
+                        <div>
+                            <h2 id="video-title" class="section-header__title">Hareketli anılar</h2>
+                            <p id="video-subtitle" class="section-header__subtitle">Bazı anılar fotoğraflardan fazlasıdır.</p>
+                        </div>
+                    </div>
+                </header>
+
+                <div id="video-grid" class="video-grid">
+                    <!-- Populated dynamically from VIDEO_ITEMS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             SECTION 4: THE FINAL SURPRISE
+             ========================================== -->
+        <section id="section-surprise" class="section-surprise" aria-labelledby="surprise-heading-sr">
+            <h2 id="surprise-heading-sr" class="sr-only">Doğum Günü Sürprizi</h2>
+
+            <!-- Midnight Sky Canvas -->
+            <canvas id="midnight-sky-canvas" class="midnight-sky-canvas" aria-hidden="true"></canvas>
+
+            <!-- Central Atmospheric Glow -->
+            <div id="surprise-glow" class="surprise-glow" aria-hidden="true"></div>
+
+            <div class="container surprise-stage">
+                <!-- Initial Prompt State -->
+                <div id="surprise-pre-state" class="surprise-pre-state">
+                    <span class="editorial-tag">SON SÜRPRİZ</span>
+                    <p id="surprise-intro-text" class="surprise-intro-text">
+                        Bir de son bir şey var.
+                    </p>
+                    <button
+                        type="button"
+                        id="surprise-trigger-btn"
+                        class="surprise-trigger-btn"
+                    >
+                        <span id="surprise-btn-label">Sürprizi aç</span>
+                    </button>
+                </div>
+
+                <!-- Revealed Celebration State -->
+                <div id="surprise-post-state" class="surprise-post-state" aria-live="polite" hidden>
+                    <div class="surprise-ornament" aria-hidden="true">
+                        <span class="surprise-ornament__line"></span>
+                        <span class="surprise-ornament__diamond"></span>
+                        <span class="surprise-ornament__line"></span>
+                    </div>
+
+                    <p id="birthday-title" class="birthday-title">İYİ Kİ DOĞDUN</p>
+                    <h3 id="birthday-recipient" class="birthday-recipient">ISIM_BURAYA</h3>
+
+                    <div class="birthday-divider" aria-hidden="true"></div>
+
+                    <p id="birthday-final-message" class="birthday-final-message">
+                        BURAYA SON MESAJ
+                    </p>
+
+                    <div class="surprise-replay-wrap">
+                        <button
+                            type="button"
+                            id="surprise-replay-btn"
+                            class="surprise-replay-btn"
+                            aria-label="Kutlama efektini tekrar oynat"
+                        >
+                            <span>KONFETİLERİ TEKRAR PATLAT</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ==========================================
+         FULLSCREEN PHOTO LIGHTBOX MODAL
+         ========================================== -->
+    <div
+        id="lightbox-modal"
+        class="lightbox-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Tam ekran fotoğraf görünümü"
+        aria-hidden="true"
+        hidden
+    >
+        <div class="lightbox-modal__backdrop" id="lightbox-backdrop"></div>
+
+        <div class="lightbox-modal__topbar">
+            <div class="lightbox-modal__counter">
+                <span id="lightbox-current">01</span>
+                <span>/</span>
+                <span id="lightbox-total">40</span>
+            </div>
+            <button
+                type="button"
+                id="lightbox-close-btn"
+                class="modal-close-btn"
+                aria-label="Tam ekran görünümü kapat"
+            >
+                <span>KAPAT</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="lightbox-modal__stage" id="lightbox-stage">
+            <button
+                type="button"
+                id="lightbox-prev-btn"
+                class="lightbox-nav-btn lightbox-nav-btn--prev"
+                aria-label="Önceki fotoğraf"
+            >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+
+            <figure class="lightbox-modal__figure" id="lightbox-figure">
+                <img
+                    id="lightbox-img"
+                    class="lightbox-modal__img"
+                    src=""
+                    alt=""
+                />
+                <div id="lightbox-fallback" class="media-fallback media-fallback--lightbox" hidden>
+                    <div class="media-fallback__inner">
+                        <span class="media-fallback__badge" id="lightbox-fallback-index">FOTOĞRAF 01</span>
+                        <p class="media-fallback__title" id="lightbox-fallback-title">Fotoğraf Bekleniyor</p>
+                        <code class="media-fallback__path" id="lightbox-fallback-path">./assets/images/photo-01.jpg</code>
+                    </div>
+                </div>
+                <figcaption class="lightbox-modal__caption" id="lightbox-caption">
+                    <strong id="lightbox-caption-title"></strong>
+                    <span id="lightbox-caption-desc"></span>
+                </figcaption>
+            </figure>
+
+            <button
+                type="button"
+                id="lightbox-next-btn"
+                class="lightbox-nav-btn lightbox-nav-btn--next"
+                aria-label="Sonraki fotoğraf"
+            >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         CINEMA VIDEO PLAYER MODAL
+         ========================================== -->
+    <div
+        id="video-modal"
+        class="video-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Video oynatıcı"
+        aria-hidden="true"
+        hidden
+    >
+        <div class="video-modal__backdrop" id="video-modal-backdrop"></div>
+
+        <div class="video-modal__dialog" role="document">
+            <header class="video-modal__header">
+                <div class="video-modal__meta">
+                    <span class="editorial-tag">HAREKETLİ ANI</span>
+                    <h3 id="video-modal-title" class="video-modal__title">Video Başlığı</h3>
+                </div>
+                <button
+                    type="button"
+                    id="video-modal-close-btn"
+                    class="modal-close-btn"
+                    aria-label="Video oynatıcıyı kapat"
+                >
+                    <span>KAPAT</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </header>
+
+            <div class="video-modal__player-wrap">
+                <video
+                    id="video-modal-player"
+                    class="video-modal__player"
+                    controls
+                    playsinline
+                    preload="metadata"
+                ></video>
+
+                <div id="video-modal-fallback" class="media-fallback media-fallback--video" hidden>
+                    <div class="media-fallback__inner">
+                        <svg class="media-fallback__icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+                            <rect x="2" y="4" width="20" height="16" rx="1"/>
+                            <polygon points="10 9 15 12 10 15 10 9"/>
+                        </svg>
+                        <span class="media-fallback__badge">VİDEO ARŞİVİ</span>
+                        <p class="media-fallback__title">Video Dosyası Bekleniyor</p>
+                        <p class="media-fallback__sub">Video dosyasını aşağıdaki yola eklediğinizde burada oynatılacaktır:</p>
+                        <code class="media-fallback__path" id="video-modal-fallback-path">./assets/videos/video-01.mp4</code>
+                    </div>
+                </div>
+            </div>
+
+            <p id="video-modal-desc" class="video-modal__desc" hidden></p>
+        </div>
+    </div>
+
+    <!-- Main Entry ES Module -->
+    <script type="module" src="./js/main.js"></script>
+</body>
+</html>

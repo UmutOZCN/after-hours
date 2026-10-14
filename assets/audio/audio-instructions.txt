@@ -1,0 +1,16 @@
+AFTER HOURS — SES VE MÜZİK DOSYALARI KILAVUZU
+==============================================
+
+Bu klasöre (assets/audio/) aşağıdaki 3 isteğe bağlı ses dosyasını ekleyebilirsiniz:
+
+1. envelope-confetti.mp3
+   - Zarf ilk kez açıldığında çalınır.
+
+2. surprise-confetti.mp3
+   - Son bölümdeki "Sürprizi aç" butonuna basıldığında çalınır.
+
+3. background-music.mp3
+   - İsteğe bağlı arka plan müziğidir.
+   - Aktif etmek için js/config.js içinde `showMusicControl: true` yapmanız yeterlidir.
+
+Not: Ses dosyalarından herhangi biri eklenmezse site hata vermez ve sessiz şekilde çalışmaya devam eder.

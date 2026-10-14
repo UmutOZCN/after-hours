@@ -1,0 +1,15 @@
+AFTER HOURS — FOTOĞRAF VE VİDEO KAPAK GÖRSELLERİ KILAVUZU
+==========================================================
+
+1. Bu klasöre (assets/images/) galeri fotoğraflarınızı ve video kapak görsellerinizi ekleyin.
+2. Varsayılan dosya isimleri:
+   - photo-01.jpg
+   - photo-02.jpg
+   - photo-03.jpg
+   - photo-04.jpg
+   - video-cover-01.jpg
+   - video-cover-02.jpg
+
+3. Desteklenen formatlar: .jpg, .jpeg, .png, .webp, .avif
+4. Fotoğraflarınızın orijinal en-boy oranları (dikey veya yatay) galeride bozulmadan korunur.
+5. Yeni fotoğraf eklediğinizde js/config.js dosyasındaki GALLERY_IMAGES dizisine ilgili dosya yolunu eklemeniz yeterlidir.

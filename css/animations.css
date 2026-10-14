@@ -1,0 +1,115 @@
+/* ==========================================
+   ENVELOPE OPENING & IN-PLACE LETTER UNFOLDING
+   ========================================== */
+
+/* Step 1: Seal fades and flap rotates open */
+.envelope-button.is-opening .envelope-seal,
+.envelope-button.is-opened .envelope-seal {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.75);
+    pointer-events: none;
+}
+
+.envelope-button.is-opening .envelope-flap,
+.envelope-button.is-opened .envelope-flap {
+    transform: rotateX(180deg);
+    z-index: 1;
+}
+
+/* Step 2: Letter physically rises out of the pocket */
+.envelope-button.is-letter-rising .envelope-letter,
+.envelope-button.is-opened .envelope-letter {
+    transform: translateY(-58%) translateZ(2px);
+}
+
+/* Step 3: Envelope stage smoothly fades as full letter unfolds */
+.envelope-stage {
+    transition: opacity 0.35s var(--ease-editorial), transform 0.35s var(--ease-editorial);
+}
+
+.envelope-stage.is-hiding {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+    pointer-events: none;
+}
+
+/* Step 4: Opened letter container unfolds in the exact same section */
+.envelope-opened-letter {
+    position: relative;
+    z-index: 4;
+    width: 100%;
+    padding: 2rem 0;
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+    transition: opacity 0.75s var(--ease-editorial),
+                transform 0.75s var(--ease-editorial);
+}
+
+.envelope-opened-letter.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.letter-top-controls {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.85rem;
+}
+
+.letter-reset-btn {
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(20, 27, 36, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    color: var(--color-muted);
+    transition: border-color 0.25s ease, color 0.25s ease;
+}
+
+.letter-reset-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-text);
+}
+
+/* ==========================================
+   SCROLL-TRIGGERED SECTION REVEALS
+   ========================================== */
+.reveal-on-scroll {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.85s var(--ease-editorial),
+                transform 0.85s var(--ease-editorial);
+}
+
+.js-enabled .reveal-on-scroll:not(.is-visible) {
+    opacity: 0;
+    transform: translateY(28px);
+}
+
+@keyframes letterHighlightGlow {
+    0% {
+        box-shadow: var(--shadow-paper), 0 0 0 rgba(183, 160, 120, 0);
+    }
+    45% {
+        box-shadow: var(--shadow-paper), 0 0 55px rgba(183, 160, 120, 0.28);
+    }
+    100% {
+        box-shadow: var(--shadow-paper), 0 0 0 rgba(183, 160, 120, 0);
+    }
+}
+
+.letter-paper.is-freshly-opened {
+    animation: letterHighlightGlow 1.6s var(--ease-editorial);
+}
+
+@keyframes soundBar {
+    0% {
+        height: 3px;
+    }
+    100% {
+        height: 10px;
+    }
+}
