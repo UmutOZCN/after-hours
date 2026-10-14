@@ -1,14 +1,16 @@
 /**
- * VİDEO ARŞİVİ MODÜLÜ (OTOMATİK VİDEO ÖNİZLEME KAPAKLI)
+ * VİDEO ARŞİVİ MODÜLÜ (iOS SAFARI + TÜM CİHAZLAR UYUMLU)
  * ============================================================
- * - Ayrı bir kapak fotoğrafı (poster) yoksa videonun 0.5. saniyesindeki
- *   kareyi otomatik olarak kapak görseli yapar.
- * - Mouse ile kartın üzerine gelindiğinde sessiz önizleme oynatır.
+ * - iOS Safari'nin 20 videoyu aynı anda yükleme kilidini aşmak için
+ *   videolar ekrana yaklaştıkça (Lazy IntersectionObserver) yüklenir.
+ * - Her kartın arkasında her zaman şık kapak katmanı hazır bekler;
+ *   video karesi yüklendiğinde üstüne yumuşakça oturur.
  */
 
 import { SITE_CONFIG, VIDEO_ITEMS } from "./config.js";
 
 export function initVideoSection() {
+    const sectionEl = document.getElementById("section-videos");
     const titleEl = document.getElementById("video-title");
     const subtitleEl = document.getElementById("video-subtitle");
     const gridEl = document.getElementById("video-grid");
@@ -21,6 +23,11 @@ export function initVideoSection() {
     const playerEl = document.getElementById("video-modal-player");
     const fallbackEl = document.getElementById("video-modal-fallback");
     const fallbackPathEl = document.getElementById("video-modal-fallback-path");
+
+    // iOS Safari'de uzun bölümün görünmez kalmasını kesin olarak engelle
+    if (sectionEl) {
+        sectionEl.classList.add("is-visible");
+    }
 
     if (titleEl) titleEl.textContent = SITE_CONFIG.videoTitle || "Hareketli anılar";
     if (subtitleEl) subtitleEl.textContent = SITE_CONFIG.videoSubtitle || "";
@@ -54,49 +61,76 @@ export function initVideoSection() {
         return;
     }
 
+    // Ekrana giren videoların kapak karesini sırayla yükleyen gözlemci (Safari bellek koruması)
+    const videoCardObserver = "IntersectionObserver" in window
+        ? new IntersectionObserver(
+            (entries, obs) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    const vid = entry.target.querySelector("video[data-src]");
+                    if (vid && !vid.getAttribute("src")) {
+                        vid.src = vid.dataset.src;
+                        vid.load();
+                    }
+                    obs.unobserve(entry.target);
+                });
+            },
+            { rootMargin: "250px 0px" }
+        )
+        : null;
+
     videos.forEach((videoItem, index) => {
         const formattedIdx = String(index + 1).padStart(2, "0");
-        const card = document.createElement("button");
-        card.type = "button";
+
+        // Safari'de <button> içindeki aspect-ratio çökmesini önlemek için <article role="button">
+        const card = document.createElement("article");
         card.className = "video-card";
+        card.setAttribute("role", "button");
+        card.setAttribute("tabindex", "0");
         card.setAttribute("aria-label", `${videoItem.title || `Video \${formattedIdx}`} oynat`);
 
         const mediaWrap = document.createElement("div");
         mediaWrap.className = "video-card__media";
 
-        // Video dosyası da henüz klasöre atılmamışsa görünecek şık yedek ekran
+        // Alt katmanda her zaman şık bir sinematik kapak bulunur (iOS Düşük Güç Modunda bile boş kalmaz)
         const posterFallback = document.createElement("div");
         posterFallback.className = "video-card__poster-fallback";
+        posterFallback.style.position = "absolute";
+        posterFallback.style.inset = "0";
+        posterFallback.style.zIndex = "1";
         posterFallback.innerHTML = `
-            <span class="video-card__poster-fallback-index">VİDEO ${formattedIdx}</span>
+            <span class="video-card__poster-fallback-index">ANI VİDEOSU ${formattedIdx}</span>
         `;
+        mediaWrap.appendChild(posterFallback);
 
-        // Videonun kendi karesini (0.5. saniye) kapak olarak kullanan sessiz önizleme elementi
+        // Videonun kendi karesini (0.2. saniye) kapak olarak kullanan video elementi
         const previewVideo = document.createElement("video");
         previewVideo.className = "video-card__poster";
-        previewVideo.src = `${videoItem.src}#t=0.5`;
+        previewVideo.style.position = "relative";
+        previewVideo.style.zIndex = "2";
+        previewVideo.dataset.src = `${videoItem.src}#t=0.2`;
         previewVideo.muted = true;
+        previewVideo.defaultMuted = true;
         previewVideo.playsInline = true;
+        previewVideo.setAttribute("playsinline", "");
+        previewVideo.setAttribute("webkit-playsinline", "");
+        previewVideo.setAttribute("muted", "");
         previewVideo.preload = "metadata";
         previewVideo.setAttribute("aria-hidden", "true");
 
-        previewVideo.addEventListener("loadeddata", () => {
-            // İlk kare yüklendiğinde eğer 0. saniyedeyse 0.5'e çek (siyah ekranı önler)
-            if (previewVideo.currentTime === 0) {
-                try {
-                    previewVideo.currentTime = 0.5;
-                } catch {
-                    // Ignore seek errors
-                }
+        previewVideo.addEventListener("loadedmetadata", () => {
+            try {
+                previewVideo.currentTime = 0.2;
+            } catch {
+                // Ignore seek restriction
             }
         });
 
-        // Eğer video dosyası henüz klasörde yoksa yedek etiketi göster
         previewVideo.addEventListener("error", () => {
-            previewVideo.replaceWith(posterFallback);
+            previewVideo.remove();
         });
 
-        // Mouse ile üzerine gelince sessiz önizleme oynat, çekince durdurup kapak karesine dön
+        // Masaüstünde mouse ile üzerine gelince sessiz önizleme oynat
         card.addEventListener("pointerenter", (e) => {
             if (e.pointerType === "touch") return;
             if (previewVideo.isConnected && previewVideo.readyState >= 2) {
@@ -110,7 +144,7 @@ export function initVideoSection() {
             if (previewVideo.isConnected) {
                 previewVideo.pause();
                 try {
-                    previewVideo.currentTime = 0.5;
+                    previewVideo.currentTime = 0.2;
                 } catch {
                     // Ignore
                 }
@@ -121,6 +155,7 @@ export function initVideoSection() {
 
         const overlay = document.createElement("div");
         overlay.className = "video-card__overlay";
+        overlay.style.zIndex = "3";
         overlay.innerHTML = `
             <span class="video-card__play-badge" aria-hidden="true">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -156,15 +191,29 @@ export function initVideoSection() {
         card.appendChild(mediaWrap);
         card.appendChild(body);
 
-        card.addEventListener("click", () => {
+        const triggerOpen = () => {
             if (previewVideo.isConnected) {
                 previewVideo.pause();
             }
             lastFocusedCard = card;
             openVideoModal(videoItem, formattedIdx);
+        };
+
+        card.addEventListener("click", triggerOpen);
+        card.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                triggerOpen();
+            }
         });
 
         gridEl.appendChild(card);
+
+        if (videoCardObserver) {
+            videoCardObserver.observe(card);
+        } else {
+            previewVideo.src = previewVideo.dataset.src;
+        }
     });
 
     function openVideoModal(item, formattedIdx) {
@@ -182,19 +231,20 @@ export function initVideoSection() {
 
         fallbackEl.hidden = true;
         playerEl.hidden = false;
-        playerEl.removeAttribute("poster");
+        playerEl.setAttribute("playsinline", "");
+        playerEl.setAttribute("webkit-playsinline", "");
 
         playerEl.src = item.src;
         playerEl.load();
+
+        modalEl.hidden = false;
+        modalEl.setAttribute("aria-hidden", "false");
+        document.body.classList.add("modal-open");
 
         const playPromise = playerEl.play();
         if (playPromise && typeof playPromise.catch === "function") {
             playPromise.catch(() => {});
         }
-
-        modalEl.hidden = false;
-        modalEl.setAttribute("aria-hidden", "false");
-        document.body.classList.add("modal-open");
 
         if (modalCloseBtn) modalCloseBtn.focus();
     }
@@ -205,7 +255,6 @@ export function initVideoSection() {
         if (playerEl) {
             playerEl.pause();
             playerEl.removeAttribute("src");
-            playerEl.removeAttribute("poster");
             playerEl.load();
         }
 

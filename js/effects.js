@@ -191,9 +191,6 @@ export class ConfettiController {
         }
     }
 
-    /**
-     * Zarf açılışında zengin çift dalgalı konfeti
-     */
     triggerEnvelopeBurst(rect) {
         let originX = 0.5;
         let originY = 0.48;
@@ -224,13 +221,9 @@ export class ConfettiController {
         }, 240);
     }
 
-    /**
-     * Son sürpriz ekranında devasa, 7 dalgalı konfeti şöleni (~950+ parçacık)
-     */
     triggerGrandCelebration() {
         this.clearScheduledBursts();
 
-        // 1. Merkezden devasa ilk patlama
         this.burst({
             originX: 0.5,
             originY: 0.58,
@@ -242,7 +235,6 @@ export class ConfettiController {
 
         if (prefersReducedMotion()) return;
 
-        // 2. Sol alt top atışı
         this.scheduledTimeouts.push(
             window.setTimeout(() => {
                 this.burst({
@@ -256,7 +248,6 @@ export class ConfettiController {
             }, 300)
         );
 
-        // 3. Sağ alt top atışı
         this.scheduledTimeouts.push(
             window.setTimeout(() => {
                 this.burst({
@@ -270,7 +261,6 @@ export class ConfettiController {
             }, 600)
         );
 
-        // 4. Sol ve Sağ orta çapraz patlama
         this.scheduledTimeouts.push(
             window.setTimeout(() => {
                 this.burst({
@@ -292,7 +282,6 @@ export class ConfettiController {
             }, 1150)
         );
 
-        // 5. Üstten geniş altın yağmuru
         this.scheduledTimeouts.push(
             window.setTimeout(() => {
                 this.burst({
@@ -314,7 +303,6 @@ export class ConfettiController {
             }, 1800)
         );
 
-        // 6. Final merkez taç patlaması
         this.scheduledTimeouts.push(
             window.setTimeout(() => {
                 this.burst({
@@ -472,12 +460,15 @@ export function initAmbientDust(canvasId = "ambient-dust-canvas", sectionId = "s
                     }
                 });
             },
-            { threshold: 0.05 }
+            { threshold: 0.01 }
         );
         observer.observe(section);
     }
 }
 
+/**
+ * Scroll Reveal Observer (iOS Safari uzun bölüm uyumlu: threshold 0.01)
+ */
 export function initScrollReveals() {
     document.documentElement.classList.add("js-enabled");
     const elements = document.querySelectorAll(".reveal-on-scroll");
@@ -497,8 +488,8 @@ export function initScrollReveals() {
             });
         },
         {
-            threshold: 0.12,
-            rootMargin: "0px 0px -40px 0px"
+            threshold: 0.01,
+            rootMargin: "0px 0px -10px 0px"
         }
     );
 
