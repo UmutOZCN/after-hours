@@ -1,10 +1,11 @@
 /**
- * VİDEO ARŞİVİ MODÜLÜ (iOS SAFARI + TÜM CİHAZLAR UYUMLU)
+ * AKILLI HİBRİT VİDEO ARŞİVİ MODÜLÜ (PC + ANDROID + iOS SAFARI)
  * ============================================================
- * - iOS Safari'nin 20 videoyu aynı anda yükleme kilidini aşmak için
- *   videolar ekrana yaklaştıkça (Lazy IntersectionObserver) yüklenir.
- * - Her kartın arkasında her zaman şık kapak katmanı hazır bekler;
- *   video karesi yüklendiğinde üstüne yumuşakça oturur.
+ * - Her kartta .jpg kapak görseli sabit olarak bulunur (asla siyah ekran olmaz).
+ * - Masaüstünde: Mouse ile kartın üzerine gelindiğinde sadece o kart için
+ *   dinamik video önizlemesi oynatılır, mouse çekilince bellekten temizlenir.
+ * - Mobilde (iPhone / Android): Sayfada kaydırırken ekranın ortasında duran
+ *   tek bir video kartı otomatik sessiz önizleme oynatır (Safari 20 video sınırına takılmaz).
  */
 
 import { SITE_CONFIG, VIDEO_ITEMS } from "./config.js";
@@ -24,7 +25,6 @@ export function initVideoSection() {
     const fallbackEl = document.getElementById("video-modal-fallback");
     const fallbackPathEl = document.getElementById("video-modal-fallback-path");
 
-    // iOS Safari'de uzun bölümün görünmez kalmasını kesin olarak engelle
     if (sectionEl) {
         sectionEl.classList.add("is-visible");
     }
@@ -35,6 +35,7 @@ export function initVideoSection() {
 
     const videos = Array.isArray(VIDEO_ITEMS) ? VIDEO_ITEMS : [];
     let lastFocusedCard = null;
+    let activePreview = null; // Aynı anda sadece 1 önizleme videosu çalışmasını garanti eder
 
     gridEl.classList.remove("video-grid--count-1", "video-grid--count-2", "video-grid--count-many");
     if (videos.length === 1) {
@@ -61,30 +62,124 @@ export function initVideoSection() {
         return;
     }
 
-    // Ekrana giren videoların kapak karesini sırayla yükleyen gözlemci (Safari bellek koruması)
-    const videoCardObserver = "IntersectionObserver" in window
-        ? new IntersectionObserver(
-            (entries, obs) => {
-                entries.forEach((entry) => {
-                    if (!entry.isIntersecting) return;
-                    const vid = entry.target.querySelector("video[data-src]");
-                    if (vid && !vid.getAttribute("src")) {
-                        vid.src = vid.dataset.src;
-                        vid.load();
-                    }
-                    obs.unobserve(entry.target);
-                });
-            },
-            { rootMargin: "250px 0px" }
-        )
-        : null;
+    /**
+     * Aktif çalışan önizleme videosunu durdurur ve RAM/Safari çözücüsünü serbest bırakır
+     */
+    function stopActivePreview() {
+        if (!activePreview) return;
+        const { videoEl } = activePreview;
+        activePreview = null;
+
+        if (videoEl) {
+            videoEl.style.opacity = "0";
+            window.setTimeout(() => {
+                try {
+                    videoEl.pause();
+                    videoEl.removeAttribute("src");
+                    videoEl.load();
+                    videoEl.remove();
+                } catch {
+                    // Ignore cleanup errors
+                }
+            }, 220);
+        }
+    }
+
+    /**
+     * Sadece seçilen kartın üzerinde sessiz önizleme videosu başlatır.
+     * Video gerçekten oynamaya başlayana kadar (.playing) kapak resmi altta görünmeye devam eder.
+     */
+    function startCardPreview(mediaWrap, videoSrc) {
+        if (!mediaWrap || !videoSrc) return;
+        if (modalEl && !modalEl.hidden) return;
+
+        if (activePreview && activePreview.mediaWrap === mediaWrap) {
+            return;
+        }
+
+        stopActivePreview();
+
+        const previewVideo = document.createElement("video");
+        previewVideo.className = "video-card__poster";
+        previewVideo.style.position = "absolute";
+        previewVideo.style.inset = "0";
+        previewVideo.style.zIndex = "2";
+        previewVideo.style.opacity = "0";
+        previewVideo.style.transition = "opacity 0.3s ease";
+        previewVideo.style.pointerEvents = "none";
+
+        previewVideo.muted = true;
+        previewVideo.defaultMuted = true;
+        previewVideo.loop = true;
+        previewVideo.playsInline = true;
+        previewVideo.setAttribute("muted", "");
+        previewVideo.setAttribute("playsinline", "");
+        previewVideo.setAttribute("webkit-playsinline", "");
+        previewVideo.preload = "auto";
+        previewVideo.src = videoSrc;
+
+        // Sadece video fiilen kare oynatmaya başladığında görünür yap (Siyah ekranı %100 önler)
+        previewVideo.addEventListener("playing", () => {
+            if (activePreview && activePreview.videoEl === previewVideo) {
+                previewVideo.style.opacity = "1";
+            }
+        });
+
+        previewVideo.addEventListener("error", () => {
+            if (activePreview && activePreview.videoEl === previewVideo) {
+                stopActivePreview();
+            }
+        });
+
+        mediaWrap.appendChild(previewVideo);
+        activePreview = { mediaWrap, videoEl: previewVideo };
+
+        const playPromise = previewVideo.play();
+        if (playPromise && typeof playPromise.catch === "function") {
+            playPromise.catch(() => {
+                // Düşük güç modu veya codec engeli varsa sessizce .jpg kapakta kal
+                if (activePreview && activePreview.videoEl === previewVideo) {
+                    stopActivePreview();
+                }
+            });
+        }
+    }
+
+    // Mobil cihazlarda (iPhone / Android) ekranın ortasına gelen tek kartı otomatik önizleten gözlemci
+    const isTouchDevice =
+        "ontouchstart" in window ||
+        (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+
+    const mobileScrollObserver =
+        isTouchDevice && "IntersectionObserver" in window
+            ? new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        const mediaWrap = entry.target.querySelector(".video-card__media");
+                        const videoSrc = entry.target.dataset.videoSrc;
+                        if (entry.isIntersecting && entry.intersectionRatio >= 0.65) {
+                            startCardPreview(mediaWrap, videoSrc);
+                        } else if (
+                            activePreview &&
+                            activePreview.mediaWrap === mediaWrap
+                        ) {
+                            stopActivePreview();
+                        }
+                    });
+                },
+                {
+                    threshold: [0, 0.65, 0.9],
+                    rootMargin: "-15% 0px -15% 0px"
+                }
+            )
+            : null;
 
     videos.forEach((videoItem, index) => {
         const formattedIdx = String(index + 1).padStart(2, "0");
 
-        // Safari'de <button> içindeki aspect-ratio çökmesini önlemek için <article role="button">
         const card = document.createElement("article");
         card.className = "video-card";
+        card.dataset.videoSrc = videoItem.src;
         card.setAttribute("role", "button");
         card.setAttribute("tabindex", "0");
         card.setAttribute("aria-label", `${videoItem.title || `Video \${formattedIdx}`} oynat`);
@@ -92,66 +187,47 @@ export function initVideoSection() {
         const mediaWrap = document.createElement("div");
         mediaWrap.className = "video-card__media";
 
-        // Alt katmanda her zaman şık bir sinematik kapak bulunur (iOS Düşük Güç Modunda bile boş kalmaz)
+        // Yedek katman
         const posterFallback = document.createElement("div");
         posterFallback.className = "video-card__poster-fallback";
-        posterFallback.style.position = "absolute";
-        posterFallback.style.inset = "0";
-        posterFallback.style.zIndex = "1";
+        posterFallback.style.alignItems = "flex-start";
+        posterFallback.style.justifyContent = "flex-start";
+        posterFallback.style.padding = "1rem 1.15rem";
         posterFallback.innerHTML = `
             <span class="video-card__poster-fallback-index">ANI VİDEOSU ${formattedIdx}</span>
         `;
-        mediaWrap.appendChild(posterFallback);
 
-        // Videonun kendi karesini (0.2. saniye) kapak olarak kullanan video elementi
-        const previewVideo = document.createElement("video");
-        previewVideo.className = "video-card__poster";
-        previewVideo.style.position = "relative";
-        previewVideo.style.zIndex = "2";
-        previewVideo.dataset.src = `${videoItem.src}#t=0.2`;
-        previewVideo.muted = true;
-        previewVideo.defaultMuted = true;
-        previewVideo.playsInline = true;
-        previewVideo.setAttribute("playsinline", "");
-        previewVideo.setAttribute("webkit-playsinline", "");
-        previewVideo.setAttribute("muted", "");
-        previewVideo.preload = "metadata";
-        previewVideo.setAttribute("aria-hidden", "true");
+        // Sabit .jpg Kapak Görseli (Her zaman altta hazır durur)
+        const posterSrc =
+            videoItem.poster && videoItem.poster.trim().length > 0
+                ? videoItem.poster
+                : `./assets/images/video-cover-${formattedIdx}.jpg`;
 
-        previewVideo.addEventListener("loadedmetadata", () => {
-            try {
-                previewVideo.currentTime = 0.2;
-            } catch {
-                // Ignore seek restriction
-            }
+        const posterImg = document.createElement("img");
+        posterImg.className = "video-card__poster";
+        posterImg.style.position = "relative";
+        posterImg.style.zIndex = "1";
+        posterImg.src = posterSrc;
+        posterImg.alt = videoItem.title || `Video ${formattedIdx}`;
+        posterImg.loading = "lazy";
+        posterImg.decoding = "async";
+
+        posterImg.addEventListener("error", () => {
+            posterImg.replaceWith(posterFallback);
         });
 
-        previewVideo.addEventListener("error", () => {
-            previewVideo.remove();
-        });
+        mediaWrap.appendChild(posterImg);
 
-        // Masaüstünde mouse ile üzerine gelince sessiz önizleme oynat
+        // Masaüstünde mouse ile üzerine gelince anlık video önizleme başlat
         card.addEventListener("pointerenter", (e) => {
             if (e.pointerType === "touch") return;
-            if (previewVideo.isConnected && previewVideo.readyState >= 2) {
-                const p = previewVideo.play();
-                if (p && typeof p.catch === "function") p.catch(() => {});
-            }
+            startCardPreview(mediaWrap, videoItem.src);
         });
 
         card.addEventListener("pointerleave", (e) => {
             if (e.pointerType === "touch") return;
-            if (previewVideo.isConnected) {
-                previewVideo.pause();
-                try {
-                    previewVideo.currentTime = 0.2;
-                } catch {
-                    // Ignore
-                }
-            }
+            stopActivePreview();
         });
-
-        mediaWrap.appendChild(previewVideo);
 
         const overlay = document.createElement("div");
         overlay.className = "video-card__overlay";
@@ -192,11 +268,9 @@ export function initVideoSection() {
         card.appendChild(body);
 
         const triggerOpen = () => {
-            if (previewVideo.isConnected) {
-                previewVideo.pause();
-            }
+            stopActivePreview();
             lastFocusedCard = card;
-            openVideoModal(videoItem, formattedIdx);
+            openVideoModal(videoItem, formattedIdx, posterSrc);
         };
 
         card.addEventListener("click", triggerOpen);
@@ -209,14 +283,12 @@ export function initVideoSection() {
 
         gridEl.appendChild(card);
 
-        if (videoCardObserver) {
-            videoCardObserver.observe(card);
-        } else {
-            previewVideo.src = previewVideo.dataset.src;
+        if (mobileScrollObserver) {
+            mobileScrollObserver.observe(card);
         }
     });
 
-    function openVideoModal(item, formattedIdx) {
+    function openVideoModal(item, formattedIdx, posterSrc) {
         if (!modalEl || !playerEl || !fallbackEl) return;
 
         if (modalTitleEl) {
@@ -233,6 +305,12 @@ export function initVideoSection() {
         playerEl.hidden = false;
         playerEl.setAttribute("playsinline", "");
         playerEl.setAttribute("webkit-playsinline", "");
+
+        if (posterSrc) {
+            playerEl.setAttribute("poster", posterSrc);
+        } else {
+            playerEl.removeAttribute("poster");
+        }
 
         playerEl.src = item.src;
         playerEl.load();
@@ -255,6 +333,7 @@ export function initVideoSection() {
         if (playerEl) {
             playerEl.pause();
             playerEl.removeAttribute("src");
+            playerEl.removeAttribute("poster");
             playerEl.load();
         }
 
