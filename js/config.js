@@ -6,7 +6,7 @@
  */
 
 export const SITE_CONFIG = {
-    recipientName: "OĞUZ",
+    recipientName: "SEVGİLİM",
 
     envelopeLabel: "SANA ÖZEL",
 
@@ -33,7 +33,7 @@ export const SITE_CONFIG = {
 
     surpriseButtonText: "Sürprizi aç",
 
-    birthdayTitle: "İYİ Kİ DOĞDUN",
+    birthdayTitle: "İYİ Kİ DOĞDUN SEVGİLİM",
 
     finalMessage: "Dünyaya tekrar gelsem, yine seni bulurdum. Çünkü kalbim, nerede olursam olayım, hangi hayatta yaşarsam yaşayayım seni tanırdı. Belki yollarımız yine farklı olurdu, belki birbirimizi bulmamız zaman alırdı ama ben bir şekilde yine sana gelirdim. Çünkü benim kalbim seni bir kere sevdi ve ben her şeye yeniden başlasam bile yine aynı kalple, yine aynı aşkla seni seçerdim. Umarım bütün güzel hayallerini gerçekleştirirsin ve ben de her birinde yanında olurum.İyi ki doğdun sevgilim, iyi ki bu dünyaya geldin ve iyi ki benim hikâyemin en güzel parçası oldun. Seni çok seviyorum, hem de kelimelerin anlatabileceğinden çok daha fazla.",
 
